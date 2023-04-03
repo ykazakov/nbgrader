@@ -19,27 +19,35 @@ export class AssignmentList {
   released_selector: string;
   fetched_selector: string;
   submitted_selector: string;
+  released_solutions_selector: string;
+  fetched_solutions_selector: string;
   released_element: HTMLDivElement;
   fetched_element: HTMLDivElement;
   submitted_element: HTMLDivElement;
+  released_solutions_element: HTMLDivElement;
+  fetched_solutions_element: HTMLDivElement;
   options: Map<string, string>;
   base_url: string;
   app: JupyterFrontEnd;
   callback: () => void;
 
-  list_loading_ids = ['released_assignments_list_loading','fetched_assignments_list_loading','submitted_assignments_list_loading'];
-  list_placeholder_ids = ['released_assignments_list_placeholder','fetched_assignments_list_placeholder', 'submitted_assignments_list_placeholder'];
-  list_error_ids = ['released_assignments_list_error','fetched_assignments_list_error', 'submitted_assignments_list_error'];
+  list_loading_ids = ['released_assignments_list_loading','fetched_assignments_list_loading','submitted_assignments_list_loading','released_solutions_list_loading','fetched_solutions_list_loading'];
+  list_placeholder_ids = ['released_assignments_list_placeholder','fetched_assignments_list_placeholder','submitted_assignments_list_placeholder','released_solutions_list_placeholder','fetched_solutions_list_placeholder'];
+  list_error_ids = ['released_assignments_list_error','fetched_assignments_list_error', 'submitted_assignments_list_error','released_solutions_list_error','fetched_solutions_list_error'];
 
-  constructor(widget: Widget, released_selector: string, fetched_selector: string, submitted_selector: string, options: Map<string, string>, app:JupyterFrontEnd){
+  constructor(widget: Widget, released_selector: string, fetched_selector: string, submitted_selector: string, released_solutions_selector: string, fetched_solutions_selector: string, options: Map<string, string>, app:JupyterFrontEnd){
     this.released_selector = released_selector;
     this.fetched_selector = fetched_selector;
     this.submitted_selector = submitted_selector;
+    this.released_solutions_selector = released_solutions_selector;
+    this.fetched_solutions_selector = fetched_solutions_selector;
 
     var div_elements = widget.node.getElementsByTagName('div');
     this.released_element = div_elements.namedItem(released_selector);
     this.fetched_element = div_elements.namedItem(fetched_selector);
     this.submitted_element = div_elements.namedItem(submitted_selector);
+    this.released_solutions_element = div_elements.namedItem(released_solutions_selector);
+    this.fetched_solutions_element = div_elements.namedItem(fetched_solutions_selector);
 
     this.options = options;
     this.base_url = options.get('base_url') || PageConfig.getBaseUrl();
@@ -50,7 +58,7 @@ export class AssignmentList {
   }
 
   public clear_list(loading: boolean): void {
-    var elems = [this.released_element, this.fetched_element, this.submitted_element];
+    var elems = [this.released_element, this.fetched_element, this.submitted_element, this.released_solutions_element, this.fetched_solutions_element];
     var i;
     var j;
 
@@ -136,7 +144,7 @@ export class AssignmentList {
   };
 
   public show_error(error: string): void {
-    var elems = [this.released_element, this.fetched_element, this.submitted_element];
+    var elems = [this.released_element, this.fetched_element, this.submitted_element, this.released_solutions_element, this.fetched_solutions_element,];
     var i;
 
     // remove list items
