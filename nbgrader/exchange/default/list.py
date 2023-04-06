@@ -29,6 +29,8 @@ class ExchangeList(ABCExchangeList, Exchange):
             pattern = os.path.join(self.root, course_id, 'inbound', '{}+{}+*'.format(student_id, assignment_id))
         elif self.cached:
             pattern = os.path.join(self.cache, course_id, '{}+{}+*'.format(student_id, assignment_id))
+        elif self.solution:
+            pattern = os.path.join(self.root, course_id, 'solution', '{}'.format(assignment_id))
         else:
             pattern = os.path.join(self.root, course_id, 'outbound', '{}'.format(assignment_id))
 
@@ -39,6 +41,8 @@ class ExchangeList(ABCExchangeList, Exchange):
             regexp = r".*/(?P<course_id>.*)/inbound/(?P<student_id>[^+]*)\+(?P<assignment_id>[^+]*)\+(?P<timestamp>[^+]*)(?P<random_string>\+.*)?"
         elif self.cached:
             regexp = r".*/(?P<course_id>.*)/(?P<student_id>.*)\+(?P<assignment_id>.*)\+(?P<timestamp>.*)"
+        elif self.solution:
+            regexp = r".*/(?P<course_id>.*)/solution/(?P<assignment_id>.*)"    
         else:
             regexp = r".*/(?P<course_id>.*)/outbound/(?P<assignment_id>.*)"
 
@@ -64,6 +68,12 @@ class ExchangeList(ABCExchangeList, Exchange):
             msg += " (already downloaded)"
         return msg
 
+    def format_solution(self, info):
+        msg = "{course_id} {assignment_id}".format(**info)
+        if os.path.exists(info['assignment_id']):
+            msg += " (already downloaded)"
+        return msg
+
     def copy_files(self):
         pass
 
@@ -80,13 +90,22 @@ class ExchangeList(ABCExchangeList, Exchange):
                 continue
 
             if self.path_includes_course:
-                assignment_dir = os.path.join(self.assignment_dir, info['course_id'], info['assignment_id'])
+                root = os.path.join(info['course_id'], info['assignment_id'])
             else:
-                assignment_dir = os.path.join(self.assignment_dir, info['assignment_id'])
+                root = info['assignment_id']
+            assignment_dir = os.path.abspath(os.path.join(self.assignment_dir, root))
+            solution_dir = os.path.abspath(os.path.join(self.solution_dir, root))
 
             if self.inbound or self.cached:
                 info['status'] = 'submitted'
                 info['path'] = path
+            elif self.solution: 
+                if os.path.exists(solution_dir):
+                    info['status'] = 'fetched_solution'
+                    info['path'] = os.path.abspath(solution_dir)
+                else:
+                    info['status'] = 'released_solution'
+                    info['path'] = path
             elif os.path.exists(assignment_dir):
                 info['status'] = 'fetched'
                 info['path'] = os.path.abspath(assignment_dir)
@@ -230,6 +249,10 @@ class ExchangeList(ABCExchangeList, Exchange):
             for assignment in assignments:
                 for info in assignment['submissions']:
                     self.log.info(self.format_inbound_assignment(info))
+        elif self.solution:
+            self.log.info("Released solutions:")
+            for info in assignments:
+                self.log.info(self.format_solution(info))
         else:
             self.log.info("Released assignments:")
             for info in assignments:
