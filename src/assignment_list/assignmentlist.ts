@@ -110,11 +110,18 @@ export class AssignmentList {
         } else if (data[i]['status'] === 'submitted') {
           this.submitted_element.append(element);
           (<HTMLDivElement>this.submitted_element.children.namedItem('submitted_assignments_list_placeholder')).hidden = true;
+        } else if (data[i].status === 'released_solution') {
+          this.released_solutions_element.append(element);
+          (<HTMLDivElement>this.released_solutions_element.children.namedItem('released_solutions_list_placeholder')).hidden = true;
+        } else if (data[i].status === 'fetched_solution') {
+          this.fetched_solutions_element.append(element);
+          (<HTMLDivElement>this.fetched_solutions_element.children.namedItem('fetched_solutions_list_placeholder')).hidden = true;
         }
     }
 
-    var assignments  = this.fetched_element.getElementsByClassName('assignment-notebooks-link');
-    for(let a of assignments){
+    var assignments  = this.fetched_element.getElementsByClassName('assignment-notebooks-link');    
+    var solutions = this.fetched_solutions_element.getElementsByClassName('assignment-notebooks-link');    
+    for (let a of [].slice.call(assignments).concat([].slice.call(solutions))) {
       var icon = document.createElement('i');
       icon.classList.add('fa', 'fa-caret-right');
       a.append(icon);
@@ -237,7 +244,7 @@ class Assignment {
     container.classList.add('item_name', 'col-sm-6');
 
     var link;
-    if (this.data['status'] === 'fetched') {
+    if (this.data['status'] === 'fetched' || this.data['status'] === 'fetched_solution') {
         link = document.createElement ('a');
         var id = this.escape_id();
         link.classList.add('collapsed', 'assignment-notebooks-link');
@@ -270,9 +277,12 @@ class Assignment {
 
   };
 
-  private make_button(): HTMLSpanElement{
+  private make_button(): HTMLSpanElement{    
     var container = document.createElement('span');
     container.classList.add('item_status', 'col-sm-4')
+    if (this.data['status'] === 'fetched_solution') {
+      return container;
+    }  
     var button = document.createElement('button');
     button.classList.add('btn', 'btn-primary', 'btn-xs')
     container.append(button);
@@ -354,6 +364,29 @@ class Assignment {
         }
 
       }
+    } else if (this.data['status'] === 'released_solution') {
+
+      button.innerText = "Fetch";
+      button.onclick = async function(){
+        button.innerText = 'Fetching...';
+        button.setAttribute('disabled', 'disabled');
+        const dataToSend = { 'course_id': that.data['course_id'], 'assignment_id': that.data['assignment_id']};
+        try {
+          const reply = await requestAPI<any>('assignments/fetch_solution', {
+            body: JSON.stringify(dataToSend),
+            method: 'POST'
+          });
+
+          that.on_refresh(reply);
+        } catch (reason) {
+          remove_children(container);
+          container.innerText = 'Error fetching solution.';
+          console.error(
+            `Error on POST /assignments/fetch_solution ${dataToSend}.\n${reason}`
+          );
+        }
+
+      }
     }
 
     return container;
@@ -386,8 +419,8 @@ class Assignment {
         children.append(element);
       }
 
-    } else if (this.data['status'] === 'fetched') {
-
+    } else if (this.data['status'] === 'fetched' || this.data['status'] === 'fetched_solution') {
+        
         id = this.escape_id();
         children.id = id;
         children.classList.add('panel-collapse', 'list_container', 'assignment-notebooks', 'collapse');
@@ -496,7 +529,6 @@ class Notebook{
     this.app = app;
     this.style();
     this.make_row();
-
   }
 
   private style(): void  {

@@ -36,6 +36,12 @@ class ExchangeFactory(LoggingConfigurable):
         help="A plugin for releasing feedback."
     ).tag(config=True)
 
+    fetch_solution = Type(
+        default.ExchangeFetchSolution,
+        klass=abc.ExchangeFetchSolution,
+        help="A plugin for fetching solutions."
+    ).tag(config=True)
+
     list = Type(
         default.ExchangeList,
         klass=abc.ExchangeList,
@@ -66,6 +72,11 @@ class ExchangeFactory(LoggingConfigurable):
         if 'parent' not in kwargs:
             kwargs['parent'] = self
         return self.fetch_feedback(*args, **kwargs)
+
+    def FetchSolution(self, *args, **kwargs):
+        if 'parent' not in kwargs:
+            kwargs['parent'] = self
+        return self.fetch_solution(*args, **kwargs)
 
     def ReleaseAssignment(self, *args, **kwargs):
         if 'parent' not in kwargs:

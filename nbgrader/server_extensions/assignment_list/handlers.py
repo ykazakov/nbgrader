@@ -114,6 +114,51 @@ class AssignmentList(LoggingConfigurable):
 
         return retvalue
 
+    def list_released_solutions(self, course_id=None):
+        with self.get_assignment_dir_config() as config:
+            try:
+                config.ExchangeList.solution = True
+                if course_id:
+                    config.CourseDirectory.course_id = course_id
+
+                coursedir = CourseDirectory(config=config)
+                authenticator = Authenticator(config=config)
+                lister = ExchangeFactory(config=config).List(
+                    coursedir=coursedir,
+                    authenticator=authenticator,
+                    config=config)
+                assignments = lister.start()
+
+            except Exception as e:
+                self.log.error(traceback.format_exc())
+                if isinstance(e, ExchangeError):
+                    retvalue = {
+                        "success": False,
+                        "value": """The exchange directory does not exist and could
+                                    not be created. The "release" and "collect" functionality will not be available.
+                                    Please see the documentation on
+                                    http://nbgrader.readthedocs.io/en/stable/user_guide/managing_assignment_files.html#setting-up-the-exchange
+                                    for instructions.
+                                """
+                    }
+                else:
+                    retvalue = {
+                        "success": False,
+                        "value": traceback.format_exc()
+                    }
+            else:
+                for assignment in assignments:
+                    if assignment['status'] == 'fetched_solution':
+                        assignment['path'] = os.path.relpath(assignment['path'], self._root_dir)
+                        for notebook in assignment['notebooks']:
+                            notebook['path'] = os.path.relpath(notebook['path'], self._root_dir)
+                retvalue = {
+                    "success": True,
+                    "value": sorted(assignments, key=lambda x: (x['course_id'], x['assignment_id']))
+                }
+
+        return retvalue    
+
     def list_submitted_assignments(self, course_id=None):
         with self.get_assignment_dir_config() as config:
             try:
@@ -174,9 +219,13 @@ class AssignmentList(LoggingConfigurable):
         if not submitted['success']:
             return submitted
 
+        solutions = self.list_released_solutions(course_id=course_id)
+        if not solutions['success']:
+            return solutions
+
         retvalue = {
             "success": True,
-            "value": released["value"] + submitted["value"]
+            "value": released["value"] + submitted["value"] + solutions["value"]
         }
 
         return retvalue
@@ -252,6 +301,34 @@ class AssignmentList(LoggingConfigurable):
 
         return retvalue
 
+    def fetch_solution(self, course_id, assignment_id):
+        with self.get_assignment_dir_config() as config:
+            try:
+                config = self.load_config()
+                config.CourseDirectory.course_id = course_id
+                config.CourseDirectory.assignment_id = assignment_id
+
+                coursedir = CourseDirectory(config=config)
+                authenticator = Authenticator(config=config)
+                fetch = ExchangeFactory(config=config).FetchSolution(
+                    coursedir=coursedir,
+                    authenticator=authenticator,
+                    config=config)
+                fetch.start()
+
+            except:
+                self.log.error(traceback.format_exc())
+                retvalue = {
+                    "success": False,
+                    "value": traceback.format_exc()
+                }
+
+            else:
+                retvalue = {
+                    "success": True
+                }
+
+        return retvalue
 
     def submit_assignment(self, course_id, assignment_id):
         with self.get_assignment_dir_config() as config:
@@ -301,7 +378,7 @@ class AssignmentListHandler(BaseAssignmentHandler):
 class AssignmentActionHandler(BaseAssignmentHandler):
 
     @web.authenticated
-    def post(self, action):
+    def post(self, action):        
         try:
             data = {
                 'assignment_id' : self.get_argument('assignment_id'),
@@ -327,6 +404,11 @@ class AssignmentActionHandler(BaseAssignmentHandler):
             assignment_id = data['assignment_id']
             course_id = data['course_id']
             self.manager.fetch_feedback(course_id, assignment_id)
+            self.finish(json.dumps(self.manager.list_assignments(course_id=course_id)))
+        elif action == 'fetch_solution':
+            assignment_id = data['assignment_id']
+            course_id = data['course_id']
+            self.manager.fetch_solution(course_id, assignment_id)
             self.finish(json.dumps(self.manager.list_assignments(course_id=course_id)))
 
 
@@ -367,7 +449,7 @@ class NbGraderVersionHandler(BaseAssignmentHandler):
 #-----------------------------------------------------------------------------
 
 
-_assignment_action_regex = r"(?P<action>fetch|submit|fetch_feedback)"
+_assignment_action_regex = r"(?P<action>fetch|submit|fetch_feedback|fetch_solution)"
 
 default_handlers = [
     (r"/assignments", AssignmentListHandler),
