@@ -24,6 +24,10 @@ flags.update({
         {'ExchangeList' : {'cached': True}},
         "List cached files rather than inbound/outbound."
     ),
+    'solution': (
+        {'ExchangeList' : {'solution': True}},
+        "List solutions rather than assignments."
+    ),
     'remove': (
         {'ExchangeList' : {'remove': True}},
         "Remove an assignment from the exchange."
