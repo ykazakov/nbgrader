@@ -357,11 +357,12 @@ def find_all_files(path: str, exclude: List[str] = None) -> List[str]:
     return files
 
 
-def find_all_notebooks(path):
-    """Return a sorted list of notebooks recursively found rooted at `path`."""
+def find_all_notebooks(path:str, exclude: List[str] = None) -> List[str]:
+    """Return a sorted list of notebooks recursively found rooted at `path`,
+    , optionally excluding some based on filename globs."""
     notebooks = list()
     rootpath = os.path.abspath(path)
-    for _file in find_all_files(rootpath):
+    for _file in find_all_files(rootpath, exclude=exclude):
         if os.path.splitext(_file)[-1] == '.ipynb':
             notebooks.append(os.path.relpath(_file, rootpath))
     notebooks.sort()
