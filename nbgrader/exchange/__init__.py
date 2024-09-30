@@ -1,7 +1,7 @@
 
 from nbgrader.exchange.abc import (Exchange, ExchangeError, ExchangeCollect, ExchangeFetch, ExchangeFetchAssignment,
                                    ExchangeFetchFeedback, ExchangeFetchSolution, ExchangeList, ExchangeReleaseAssignment, ExchangeRelease,
-                                   ExchangeReleaseFeedback, ExchangeSubmit, ExchangeReleaseFeedback)
+                                   ExchangeReleaseFeedback, ExchangeSubmit, ExchangeReleaseSolution)
 from .exchange_factory import ExchangeFactory
 
 __all__ = [
@@ -16,6 +16,7 @@ __all__ = [
     "ExchangeRelease",
     "ExchangeReleaseAssignment",
     "ExchangeReleaseFeedback",
+    "ExchangeReleaseSolution",
     "ExchangeSubmit",
     "ExchangeFactory",
     "default"
