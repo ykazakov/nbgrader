@@ -53,6 +53,46 @@ class TestNbGraderList(BaseTestApp):
 
         run_nbgrader(cmd)
 
+    def _release_solution(self, assignment, exchange, cache, course_dir, course="abc101"):
+        self._copy_file(os.path.join("files", "test.ipynb"), os.path.join(course_dir, "solution", assignment, "p1.ipynb"))
+        run_nbgrader([
+            "release_solution", assignment,
+            "--course", course,
+            "--CourseDirectory.root={}".format(course_dir),
+            "--Exchange.cache={}".format(cache),
+            "--Exchange.root={}".format(exchange)
+        ])
+
+    def _release_solution_full(self, assignment, exchange, cache, course_dir, course="abc101"):
+        self._copy_file(os.path.join("files", "test.ipynb"), os.path.join(course_dir, "source", assignment, "p1.ipynb"))
+        run_nbgrader([
+            "generate_solution", assignment,
+            "--course", course,
+            "--CourseDirectory.root={}".format(course_dir),
+            "--Exchange.cache={}".format(cache),
+            "--Exchange.root={}".format(exchange)
+        ])
+        run_nbgrader([
+            "release_solution", assignment,
+            "--course", course,
+            "--CourseDirectory.root={}".format(course_dir),
+            "--Exchange.cache={}".format(cache),
+            "--Exchange.root={}".format(exchange)
+        ])
+
+    def _fetch_solution(self, assignment, exchange, cache, course="abc101", flags=None):
+        cmd = [
+            "fetch_solution", assignment,
+            "--course", course,
+            "--Exchange.cache={}".format(cache),
+            "--Exchange.root={}".format(exchange)
+        ]
+
+        if flags is not None:
+            cmd.extend(flags)
+
+        run_nbgrader(cmd)
+
     def _submit(self, assignment, exchange, cache, course="abc101", flags=None):
         cmd = [
             "submit", assignment,
@@ -498,4 +538,64 @@ class TestNbGraderList(BaseTestApp):
             [ListApp | INFO] abc101 {} ps1 {} (feedback already fetched)
             [ListApp | INFO] abc101 {} ps1 {} (feedback already fetched)
             """.format(get_username(), timestamps[0], get_username(), timestamps[1])
+        ).lstrip()
+
+    def test_list_solution(self, exchange, cache, course_dir):
+        self._release_solution("ps1", exchange, cache, course_dir)
+        self._release_solution("ps2", exchange, cache, course_dir)
+        assert self._list(exchange, cache, flags=["--solution"]) == dedent(
+            """
+            [ListApp | INFO] Released solutions:
+            [ListApp | INFO] abc101 ps1 (download assignment!)
+            [ListApp | INFO] abc101 ps2 (download assignment!)
+            """
+        ).lstrip()
+
+    def test_list_solution_remove(self, exchange, cache, course_dir):
+        self._release_solution("ps1", exchange, cache, course_dir)
+        self._release_solution("ps2", exchange, cache, course_dir)
+        self._list(exchange, cache, "ps1", flags=["--solution", "--remove"])
+        assert self._list(exchange, cache, flags=["--solution"]) == dedent(
+            """
+            [ListApp | INFO] Released solutions:
+            [ListApp | INFO] abc101 ps2 (download assignment!)
+            """
+        ).lstrip()
+
+    def test_list_solution_release_full(self, exchange, cache, course_dir):
+        self._release_full("ps1", exchange, cache, course_dir)
+        self._fetch("ps1", exchange, cache)
+        self._release_solution_full("ps1", exchange, cache, course_dir)
+        assert self._list(exchange, cache, flags=["--solution"]) == dedent(
+            """
+            [ListApp | INFO] Released solutions:
+            [ListApp | INFO] abc101 ps1
+            """
+        ).lstrip()
+
+    def test_list_solution_fetched_assignment(self, exchange, cache, course_dir):
+        self._release("ps1", exchange, cache, course_dir)
+        self._fetch("ps1", exchange, cache)
+        self._release_solution("ps1", exchange, cache, course_dir)
+        self._release_solution("ps2", exchange, cache, course_dir)
+        assert self._list(exchange, cache, flags=["--solution"]) == dedent(
+            """
+            [ListApp | INFO] Released solutions:
+            [ListApp | INFO] abc101 ps1
+            [ListApp | INFO] abc101 ps2 (download assignment!)
+            """
+        ).lstrip()
+
+    def test_list_solution_fetched(self, exchange, cache, course_dir):
+        self._release("ps1", exchange, cache, course_dir)
+        self._fetch("ps1", exchange, cache)
+        self._release_solution("ps1", exchange, cache, course_dir)
+        self._release_solution("ps2", exchange, cache, course_dir)
+        self._fetch_solution("ps1", exchange, cache)
+        assert self._list(exchange, cache, flags=["--solution"]) == dedent(
+            """
+            [ListApp | INFO] Released solutions:
+            [ListApp | INFO] abc101 ps1 (already downloaded)
+            [ListApp | INFO] abc101 ps2 (download assignment!)
+            """
         ).lstrip()
