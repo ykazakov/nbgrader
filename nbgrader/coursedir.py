@@ -257,6 +257,7 @@ class CourseDirectory(LoggingConfigurable):
             "*.pyc",
             "__pycache__",
             "feedback",
+            "solution",
         ],
         help=dedent(
             """
