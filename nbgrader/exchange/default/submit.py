@@ -78,7 +78,7 @@ class ExchangeSubmit(Exchange, ABCExchangeSubmit):
 
     def check_filename_diff(self):
         released_notebooks = find_all_notebooks(self.release_path)
-        submitted_notebooks = find_all_notebooks(self.src_path)
+        submitted_notebooks = find_all_notebooks(self.src_path, self.coursedir.ignore)
 
         # Look for missing notebooks in submitted notebooks
         missing = False
