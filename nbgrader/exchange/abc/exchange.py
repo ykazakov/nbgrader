@@ -26,16 +26,6 @@ class Exchange(LoggingConfigurable):
         )
     ).tag(config=True)
 
-    solution_dir = Unicode(
-        "solution",
-        help=dedent(
-            """
-            Local path for storing solutions to assignments.  
-            Defaults to 'solution'.            
-            """
-        )
-    ).tag(config=True)
-
     timezone = Unicode(
         "UTC",
         help="Timezone for recording timestamps"
