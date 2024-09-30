@@ -9,10 +9,12 @@ from .validateapp import ValidateApp
 from .releaseapp import ReleaseApp
 from .releaseassignmentapp import ReleaseAssignmentApp
 from .releasefeedbackapp import ReleaseFeedbackApp
+from .releasesolutionapp import ReleaseSolutionApp
 from .collectapp import CollectApp
 from .fetchapp import FetchApp
 from .fetchassignmentapp import FetchAssignmentApp
 from .fetchfeedbackapp import FetchFeedbackApp
+from .fetchsolutionapp import FetchSolutionApp
 from .generatesolutionapp import GenerateSolutionApp
 from .submitapp import SubmitApp
 from .listapp import ListApp
@@ -42,10 +44,12 @@ __all__ = [
     'ReleaseApp',
     'ReleaseAssignmentApp',
     'ReleaseFeedbackApp',
+    'ReleaseSolutionApp',
     'CollectApp',
     'FetchApp',
     'FetchAssignmentApp',
     'FetchFeedbackApp',
+    'FetchSolutionApp',
     'SubmitApp',
     'ListApp',
     'ExtensionApp',

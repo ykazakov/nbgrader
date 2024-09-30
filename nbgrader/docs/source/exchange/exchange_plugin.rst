@@ -33,10 +33,12 @@ The nbgrader exchange uses the followng classes::
     ExchangeFetch
     ExchangeFetchAssignment
     ExchangeFetchFeedback
+    ExchangeFetchSolution
     ExchangeList
     ExchangeRelease
     ExchangeReleaseAssignment
     ExchangeReleaseFeedback
+    ExchangeReleaseSolution
     ExchangeSubmit
 
 Of these ExchangeFetch and ExchangeRelease have both been deprecated and not configurable through the ExchangeFactory class.
@@ -56,12 +58,16 @@ For example, if we have installed a package called ``nbexchange``, we add the fo
         c.ExchangeFactory.fetch_assignment = 'nbexchange.plugin.ExchangeFetchAssignment'
         ## A plugin for fetching feedback.
         c.ExchangeFactory.fetch_feedback = 'nbexchange.plugin.ExchangeFetchFeedback'
+        ## A plugin for fetching solutions.
+        c.ExchangeFactory.fetch_solution = 'nbexchange.plugin.ExchangeFetchSolution'
         ## A plugin for listing exchange files.
         c.ExchangeFactory.list = 'nbexchange.plugin.ExchangeList'
         ## A plugin for releasing assignments.
         c.ExchangeFactory.release_assignment = 'nbexchange.plugin.ExchangeReleaseAssignment'
         ## A plugin for releasing feedback.
-        c.ExchangeFactory.release_feedback = 'nbexchange.plugin.ExchangeReleaseFeedback'
+        c.ExchangeFactory.release_feedback = 'nbexchange.plugin.
+        ## A plugin for releasing solutions.
+        c.ExchangeFactory.release_solution = 'nbexchange.plugin.ExchangeReleaseSolution'
         ## A plugin for submitting assignments.
         c.ExchangeFactory.submit = 'nbexchange.plugin.ExchangeSubmit'
 
@@ -70,8 +76,10 @@ The fields in the ExchangeFactory are:
 * ``exchange`` - The base Exchange class that all other classes inherit from
 * ``fetch_assignment`` - The ExchangeFetchAssignment class
 * ``fetch_feedback`` - The ExchangeFetchFeedback class
+* ``fetch_solution`` - The ExchangeFetchSolution class
 * ``release_assignment`` - The ExchangeReleaseAssignment class
 * ``release_feedback`` - The ExchangeReleaseFeedback class
+* ``release_solution`` - The ExchangeReleaseSolution class
 * ``list`` - The ExchangeList class
 * ``submit`` - The ExchangeSubmit class
 * ``collect`` - The ExchangeCollect class
