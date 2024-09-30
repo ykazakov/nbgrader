@@ -28,6 +28,7 @@ from . import (
     FetchApp,
     FetchAssignmentApp,
     FetchFeedbackApp,
+    FetchSolutionApp,
     SubmitApp,
     ListApp,
     ExtensionApp,
@@ -37,7 +38,8 @@ from . import (
     UpdateApp,
     ZipCollectApp,
     GenerateConfigApp,
-    GenerateSolutionApp
+    GenerateSolutionApp,
+    ReleaseSolutionApp
 )
 from traitlets.traitlets import MetaHasTraits
 from typing import List
@@ -181,6 +183,15 @@ class NbGraderApp(NbGrader):
                 """
             ).strip()
         ),
+        release_solution=(
+            ReleaseSolutionApp,
+            dedent(
+                """
+                Release assignment solution to students through the nbgrader exchange.
+                Intended for use by instructors only.
+                """
+            ).strip()
+        ),
         collect=(
             CollectApp,
             dedent(
@@ -222,6 +233,15 @@ class NbGraderApp(NbGrader):
             dedent(
                 """
                 Fetch feedback for an assignment from an instructor through the nbgrader exchange.
+                Intended for use by students only.
+                """
+            ).strip()
+        ),
+        fetch_solution=(
+            FetchSolutionApp,
+            dedent(
+                """
+                Fetch solution for an assignment from an instructor through the nbgrader exchange.
                 Intended for use by students only.
                 """
             ).strip()
