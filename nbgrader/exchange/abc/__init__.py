@@ -3,6 +3,7 @@ from .submit import ExchangeSubmit
 from .release_feedback import ExchangeReleaseFeedback
 from .release import ExchangeRelease
 from .release_assignment import ExchangeReleaseAssignment
+from .release_solution import ExchangeReleaseSolution
 from .fetch_feedback import ExchangeFetchFeedback
 from .fetch import ExchangeFetch
 from .fetch_assignment import ExchangeFetchAssignment
@@ -22,5 +23,6 @@ __all__ = [
     "ExchangeRelease",
     "ExchangeReleaseAssignment",
     "ExchangeReleaseFeedback",
+    "ExchangeReleaseSolution",
     "ExchangeSubmit"
 ]
