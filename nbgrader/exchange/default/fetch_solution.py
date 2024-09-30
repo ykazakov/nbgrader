@@ -8,9 +8,6 @@ from nbgrader.utils import check_mode
 
 class ExchangeFetchSolution(Exchange, ABCExchangeFetchSolution):
 
-    def _load_config(self, cfg, **kwargs):
-        super(ExchangeFetchSolution, self)._load_config(cfg, **kwargs)
-
     def init_src(self):
         if self.coursedir.course_id == '':
             self.fail("No course id specified. Re-run with --course flag.")
@@ -18,21 +15,25 @@ class ExchangeFetchSolution(Exchange, ABCExchangeFetchSolution):
             self.fail("You do not have access to this course.")
 
         self.course_path = os.path.join(self.root, self.coursedir.course_id)
-        self.solution_path = os.path.join(self.course_path, 'solution')
-        self.src_path = os.path.join(self.solution_path, self.coursedir.assignment_id)
+        self.outbound_path = os.path.join(self.course_path, 'solution')
+        self.src_path = os.path.join(self.outbound_path, self.coursedir.assignment_id)
         if not os.path.isdir(self.src_path):
             self._assignment_not_found(
                 self.src_path,
-                os.path.join(self.solution_path, "*"))
+                os.path.join(self.outbound_path, "*"))
         if not check_mode(self.src_path, read=True, execute=True):
             self.fail("You don't have read permissions for the directory: {}".format(self.src_path))
 
     def init_dest(self):
         if self.path_includes_course:
-            root = os.path.join(self.coursedir.course_id, self.coursedir.assignment_id)
+            self.root = os.path.join(self.coursedir.course_id, self.coursedir.assignment_id)
         else:
-            root = self.coursedir.assignment_id
-        self.dest_path = os.path.abspath(os.path.join(self.solution_dir, root))
+            self.root = self.coursedir.assignment_id
+        assignment_root = os.path.join(self.assignment_dir, self.root)
+        if not os.path.isdir(assignment_root):
+            self.fail('Assignment "{}" was not downloaded, run `nbgrader fetch_assignment` first.'.format(
+                self.coursedir.assignment_id))
+        self.dest_path = os.path.abspath(os.path.join(assignment_root, 'solution'))
         if os.path.isdir(self.dest_path) and not self.replace_missing_files:
             self.fail("You already have a copy of the solution in this directory: {}".format(root))
 
@@ -69,4 +70,4 @@ class ExchangeFetchSolution(Exchange, ABCExchangeFetchSolution):
         self.log.info("Source: {}".format(self.src_path))
         self.log.info("Destination: {}".format(self.dest_path))
         self.do_copy(self.src_path, self.dest_path)
-        self.log.info("Fetched as: {} {}".format(self.coursedir.course_id, self.coursedir.assignment_id))
+        self.log.info("Fetched solution for {}".format(self.root))

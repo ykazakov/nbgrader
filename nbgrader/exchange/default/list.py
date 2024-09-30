@@ -70,8 +70,10 @@ class ExchangeList(ABCExchangeList, Exchange):
 
     def format_solution(self, info):
         msg = "{course_id} {assignment_id}".format(**info)
-        if os.path.exists(info['assignment_id']):
+        if info['status'] == 'fetched_solution':        
             msg += " (already downloaded)"
+        elif info['status'] == "fetch_assignment":
+            msg += " (download assignment!)"
         return msg
 
     def copy_files(self):
@@ -90,21 +92,23 @@ class ExchangeList(ABCExchangeList, Exchange):
                 continue
 
             if self.path_includes_course:
-                root = os.path.join(info['course_id'], info['assignment_id'])
+                assignment_dir = os.path.join(self.assignment_dir, info['course_id'], info['assignment_id'])
             else:
-                root = info['assignment_id']
-            assignment_dir = os.path.abspath(os.path.join(self.assignment_dir, root))
-            solution_dir = os.path.abspath(os.path.join(self.solution_dir, root))
+                assignment_dir = os.path.join(self.assignment_dir, info['assignment_id'])
 
             if self.inbound or self.cached:
                 info['status'] = 'submitted'
                 info['path'] = path
             elif self.solution: 
+                solution_dir = os.path.join(assignment_dir, 'solution')
                 if os.path.exists(solution_dir):
                     info['status'] = 'fetched_solution'
                     info['path'] = os.path.abspath(solution_dir)
-                else:
+                elif os.path.exists(assignment_dir):
                     info['status'] = 'released_solution'
+                    info['path'] = path
+                else:
+                    info['status'] = 'fetch_assignment'
                     info['path'] = path
             elif os.path.exists(assignment_dir):
                 info['status'] = 'fetched'
@@ -269,6 +273,10 @@ class ExchangeList(ABCExchangeList, Exchange):
             for assignment in assignments:
                 for info in assignment['submissions']:
                     self.log.info(self.format_inbound_assignment(info))
+        elif self.solution:
+            self.log.info("Removing released solutions:")
+            for info in assignments:
+                self.log.info(self.format_solution(info))
         else:
             self.log.info("Removing released assignments:")
             for info in assignments:
