@@ -478,7 +478,7 @@ class Submission{
     container.classList.add('col-md-12');
     var status = document.createElement('span')
     status.classList.add('item_name', 'col-sm-6');
-    var s = document.createElement('span').innerText = this.data['timestamp'];
+    var s = document.createElement('span').innerText = this.data['timestamp'] + ' ' + this.data['checksum'];
     status.append(s);
 
 
